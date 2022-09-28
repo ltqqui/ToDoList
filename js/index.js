@@ -1,157 +1,129 @@
-let arrWork=[];
-document.querySelector("#addItem").onclick = function createTask(){
-    let myTaskToDo=new Work()
-    myTaskToDo.name=document.querySelector('#newTask').value;
-    myTaskToDo.id=arrWork.length;
-    if(myTaskToDo.name!=""){
-      arrWork.push(myTaskToDo)
-    }
-    else 
-    alert("Nhập công việc")
-    renderTask(arrWork);
-    document.querySelector('#newTask').value=''
-} 
-// DO TO
-let renderTask=(array)=>{
-  let html = "";
-  for (let task of array) {
-    html += `
-      <li>
-          <p>${task.name}</p>                 
-          <div class="buttons">
-          <button class="remove" onclick="deleteWorkToDo('${task.id}')" >
-          <i class="far fa-trash-alt"></i>
-          </button>
-          <button class="complete" onclick="completeWorkToDo('${task.id}')">
-          <i class="fas fa-check-circle"></i>
-          </button>
-          </div>
-      </li>
-      
-      `;
+import { ToDo } from "./Work.js";
+
+let arrTodo = [];
+let task = new ToDo();
+let newComplete = new ToDo();
+let arrComPlete = [];
+
+document.querySelector("#addItem").onclick = () => {
+  let name = String(document.querySelector("#newTask").value);
+  let id = String(Date.now());
+  arrTodo.push();
+  if (name.trim() == 0) {
+    alert("Nhập vào công việc ");
+  } else {
+    task = { id, name };
+    arrTodo.push(task);
+    document.querySelector("#newTask").value = "";
+    console.log(arrTodo);
+    renderList(arrTodo);
+    setLocalStorage(arrTodo, "ToDo");
   }
+};
+
+let renderList = (array) => {
+  let html = "";
+  for (let newTask of array) {
+    html += `
+    <li>
+    <p>${newTask.name}</p>                 
+    <div class="buttons">
+    <button class="remove" onclick="deleteWork('${newTask.id}')" >
+    <i class="far fa-trash-alt"></i>
+    </button>
+    <button class="complete" onclick="completeWork('${newTask.id}')">
+    <i class="fas fa-check-circle"></i>
+    </button>
+    </div>
+    </li>
+    `;
+  }
+  console.log(array);
   document.querySelector("#todo").innerHTML = html;
-  saveLocalStorage(array,"ToDo");
-}
+  document.querySelector("#newTask").value = "";
+};
 
+window.deleteWork = (idDelete) => {
+  arrTodo = arrTodo.filter((todo) => todo.id !== idDelete);
+  setLocalStorage(arrTodo, "ToDo");
+  renderList(arrTodo);
+};
 
-let deleteWorkToDo=(idDelete)=>{
-  // for(let task of arrWork){
-  //   if(task.id==idDelete){
-  //     console.log(task.id)
-  //    arrWork.splice(task,1)
-  //   }
-  //   // console.log(idDelete)
-  // }
-  let indexDel=-1;
-    for(let index=0;index<arrWork.length;index++){
-        if(arrWork[index].id==idDelete ){
-            indexDel=index;
-            break;
-        }
-    }
-    if(indexDel!==-1){
-        arrWork.splice(indexDel,1)
-    }
-  renderTask(arrWork);
-  saveLocalStorage(arrWork,"ToDo");
-}
+//complte
 
-
-let arrComplete= [];
-let completeWorkToDo= (idComplete)=>{
-//   for(let task of arrWork){
-//     if(task.id==idComplete){
-//      renderTask(arrWork);
-//      arrComplete.push(task)  
-//      arrWork.splice(task,1) 
-//     console.log(arrWork);
-// console.log(arrComplete)
-//     }
-  for(let i=0;i<arrWork.length;i++){
-    if(arrWork[i].id==idComplete){
-      arrComplete.push(arrWork[i]);
-      arrWork.splice(i,1);
-    }
-  }
-
-  saveLocalStorage(arrWork,"ToDo");
-  saveLocalStorage(arrComplete,"Complete")
-
-
-
-renderTask(arrWork);
-renderCompleted(arrComplete)
-  }
-
-
-  // renderCompleted(arrComplete);
-  // saveLocalStorage(arrWork,"ToDo");
-  // saveLocalStorage(arrComplete,"Complete");
-
-
-
-// COMPLETE
-
-let renderCompleted=(array)=>{
+let renderComplete = (array) => {
   let html = "";
-  for (let task of array) {
+  for (let newTask of array) {
     html += `
-      <li>
-          <p>${task.name}</p>                 
-          <div class="buttons">
-          <button class="remove" onclick="deleteWorkComplete(${ task.id})" >
-          <i class="far fa-trash-alt"></i>
-          </button>
-          <button class="complete">
-          <i class="fas fa-check-circle"></i>
-          </button>
-          </div>
-      </li>
-      
-      `;
+    <li>
+    <p>${newTask.name}</p>                 
+    <div class="buttons">
+    <button class="remove" onclick="deleteCompleted('${newTask.id}')" >
+    <i class="far fa-trash-alt"></i>
+    </button>
+    <button class="complete">
+    <i class="fas fa-check-circle"></i>
+    </button>
+    </div>
+    </li>
+    `;
   }
+  console.log(array);
   document.querySelector("#completed").innerHTML = html;
-  saveLocalStorage(array,"Complete");
+  document.querySelector("#newTask").value = "";
+};
+
+window.completeWork = (idComplete) => {
+  newComplete = arrTodo.find((complete) => complete.id == idComplete);
+  arrComPlete.unshift(newComplete);
+  deleteWork(idComplete);
+  setLocalStorage(arrComPlete, "completed");
+  renderComplete(arrComPlete);
+};
+
+window.deleteCompleted=(idDelete)=>{
+  arrComPlete = arrComPlete.filter((completed) => completed.id !== idDelete);
+  setLocalStorage(arrComPlete,"completed");
+  renderComplete(arrComPlete);
 }
 
-let deleteWorkComplete=(idDelete)=>{
-  for(let task of arrComplete){
-    if(task.id==idDelete){
-     arrComplete.splice(task,1)
+let setLocalStorage = (ob, key) => {
+  let str = JSON.stringify(ob);
+  localStorage.setItem(key, str);
+};
+let getLocalStorage = (key) => {
+  if (localStorage.getItem(key)) {
+    let str = localStorage.getItem(key);
+    if (key == "ToDo") arrTodo = JSON.parse(str);
+    else arrComPlete = JSON.parse(str);
+    // arrComPlete=JSON.parse(str);
+  }
+};
+
+
+
+document.querySelector("#two").onclick = () => {
+  let kt;
+  for (let i = 0; i < arrTodo.length; i++) {
+    for (let j = i + 1; j < arrTodo.length; j++) {
+      if (arrTodo[i].name.toLowerCase() > arrTodo[j].name.toLowerCase()) {
+        let temp = arrTodo[i];
+        arrTodo[i] = arrTodo[j];
+        arrTodo[j] = temp;
+      }
     }
   }
-  renderCompleted(arrComplete);
-  saveLocalStorage(arrComplete,"Complete");
-}
+  renderList(arrTodo);
+};
 
+document.querySelector("#three").onclick = () => {
+  arrTodo.reverse();
+  renderList(arrTodo);
+};
 
-let saveLocalStorage=(ob,key)=>{
-  // let str =JSON.stringify(ob);
-  // localStorage.setItem(key,str);  
-  let str=JSON.stringify(ob);
-  localStorage.setItem(key, str);
-}
-
-let getLocalStorage=(key)=>{
-  if(localStorage.getItem(key)){
-    let str=localStorage.getItem(key);
-    let ob=JSON.parse(str);
-    return ob;
-  }
-  return undefined;
-}
-
-console.log(arrWork);
-console.log(arrComplete)
-window.onload=()=>{
-  let arrToDo= getLocalStorage("ToDo");
-  let arrCompleted=getLocalStorage("Complete")
-  // console.log(arrToDo)
-  renderTask(arrToDo);
-  renderCompleted(arrCompleted);
-  arrWork={...arrToDo}
-  console.log(arrToDo);
-  
-}
-
+window.onload = () => {
+  getLocalStorage("ToDo");
+  renderList(arrTodo);
+  getLocalStorage("completed");
+  renderComplete(arrComPlete);
+};
